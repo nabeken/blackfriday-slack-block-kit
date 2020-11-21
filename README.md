@@ -21,6 +21,8 @@ Please have a look at [main.go](main.go).
 
 ## Releases
 
+https://github.com/nabeken/blackfriday-slack-block-kit/releases
+
 ## Thanks
 
 `blackfriday-slack-block-kit` is derived from https://github.com/karriereat/blackfriday-slack
