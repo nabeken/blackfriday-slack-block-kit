@@ -17,7 +17,7 @@ const (
 	tagItalic     = "_"
 	tagStrong     = "*"
 	tagStrike     = "~"
-	tagItem       = "-"
+	tagItem       = "•"
 	tagLink       = "<"
 	tagLinkClose  = ">"
 	tagCode       = "`"
@@ -63,26 +63,6 @@ func esc(w io.Writer, text []byte) {
 	if start < len(text) && end <= len(text) {
 		w.Write(text[start:end])
 	}
-}
-
-func appendText(blocks []*Block, text string) []*Block {
-	var last *Block
-	if len(blocks) > 0 {
-		last = blocks[len(blocks)-1]
-	}
-
-	if last != nil && last.Type == "section" {
-		last.Text.Text += text
-		return blocks
-	}
-
-	return append(blocks, &Block{
-		Type: "section",
-		Text: &Text{
-			Type: textTypeMrkdwn,
-			Text: text,
-		},
-	})
 }
 
 // Converter holds an internal state for converting blackfriday v2 AST into Slack Block Kit UI Framework.
@@ -144,6 +124,27 @@ func ppNode(node *bf.Node, entering bool) {
 		next.Type.String(),
 		string(node.Literal),
 	)
+}
+
+// appendText appends the text in the buffer and reset the buffer.
+func (c *Converter) appendText() {
+	var last *Block
+	if len(c.blocks) > 0 {
+		last = c.blocks[len(c.blocks)-1]
+	}
+
+	if last != nil && last.Type == "section" {
+		last.Text.Text += c.buf.String()
+	} else {
+		c.blocks = append(c.blocks, &Block{
+			Type: "section",
+			Text: &Text{
+				Type: textTypeMrkdwn,
+				Text: c.buf.String(),
+			},
+		})
+	}
+	c.buf.Reset()
 }
 
 func (c *Converter) Convert() Layout {
@@ -210,9 +211,7 @@ func (c *Converter) Convert() Layout {
 				}
 
 				c.buf.WriteByte('\n')
-
-				c.blocks = appendText(c.blocks, c.buf.String())
-				c.buf.Reset()
+				c.appendText()
 			}
 		case bf.List:
 			if entering {
@@ -226,7 +225,6 @@ func (c *Converter) Convert() Layout {
 			}
 		case bf.Item:
 			if entering {
-				c.buf.WriteString(spaceBytes)
 				for i := 1; i < c.itemLevel; i++ {
 					c.buf.WriteString(spaceBytes)
 					c.buf.WriteString(spaceBytes)
@@ -248,8 +246,12 @@ func (c *Converter) Convert() Layout {
 
 		case bf.CodeBlock:
 			c.buf.WriteString(tagCodeBlock)
+			c.buf.WriteByte('\n')
 			esc(&c.buf, node.Literal)
 			c.buf.WriteString(tagCodeBlock)
+			c.buf.WriteByte('\n')
+			c.buf.WriteByte('\n')
+			c.appendText()
 
 		case bf.Heading:
 			if entering {

@@ -16,6 +16,77 @@ func TestBlockQuoteConvert(t *testing.T) {
 	assertText(t, "> hello\n> world\n>\n> abc\n> def\n\n", blocks[0])
 }
 
+func TestCodeBlockConvert(t *testing.T) {
+	_, blocks := newConv(string(mustOpenTestData("example_codeblock.md")))
+	assertText(t, "```\ngo func() {\n  println(\"hello world\")\n}()\n```\n\n", blocks[0])
+}
+
+func TestFullExample(t *testing.T) {
+	expected := []*Block{
+		&Block{
+			Type: "header",
+			Text: newPlainText("Heading 1"),
+		},
+		&Block{
+			Type: "divider",
+		},
+		&Block{
+			Type: "header",
+			Text: newPlainText("Heading 2"),
+		},
+		&Block{
+			Type: "divider",
+		},
+		&Block{
+			Type: "header",
+			Text: newPlainText("Heading 3"),
+		},
+		&Block{
+			Type: "divider",
+		},
+		&Block{
+			Type: "header",
+			Text: newPlainText("Heading 4"),
+		},
+		&Block{
+			Type: "divider",
+		},
+		&Block{
+			Type: "header",
+			Text: newPlainText("Heading 5"),
+		},
+		&Block{
+			Type: "divider",
+		},
+		&Block{
+			Type: "header",
+			Text: newPlainText("Heading 6"),
+		},
+		&Block{
+			Type: "divider",
+		},
+		&Block{
+			Type: "section",
+			Text: &Text{
+				Type: textTypeMrkdwn,
+				Text: "Hello, ~Markdown~ *mrkdwn*!\n\n`mrkdwn` is text formatting markup style in <https://slack.com/|Slack>.\n\n",
+			},
+		},
+		&Block{
+			Type: "divider",
+		},
+		&Block{
+			Type: "section",
+			Text: &Text{
+				Type: textTypeMrkdwn,
+				Text: "• First\n• Second\n   • Sub item 1\n   • Sub item 2\n      • Sub Sub A\n      • Sub Sub B\n   • C\n   • <https://slack.com|Slack>\n• Third\n   1. Ordered list 1\n   2. Ordered list 2\n   3. Ordered list 3\n      1. Ordered sub list 1\n      2. Ordered sub list 2\n      3. Ordered sub list 3\n   4. Ordered list 4\n> _This is blockquote._\n> <https://slack.com|Slack>\n>\n> *This is the second paragraph in blockquote.*\n> <https://slack.com|Slack>\n\n```\nconsole.log('Hello, mrkdwn!')\n```\n\nThis is the last paragraph.\n\n",
+			},
+		},
+	}
+	_, blocks := newConv(string(mustOpenTestData("full_example.md")))
+	assert.Equal(t, expected, blocks)
+}
+
 func TestSimpleConvert(t *testing.T) {
 	type testCase struct {
 		input    string
@@ -82,4 +153,11 @@ func newConv(input string) (*bf.Node, []*Block) {
 		conv.Debug()
 	}
 	return ast, conv.Convert().Blocks
+}
+
+func newPlainText(text string) *Text {
+	return &Text{
+		Type: textTypePlain,
+		Text: text,
+	}
 }
