@@ -118,13 +118,42 @@ func (c *Converter) Debug() *Converter {
 	return c
 }
 
+func ppNode(node *bf.Node, entering bool) {
+	var (
+		parent = node.Parent
+		prev   = node.Prev
+		next   = node.Next
+	)
+
+	if parent == nil {
+		parent = &bf.Node{}
+	}
+	if prev == nil {
+		prev = &bf.Node{}
+	}
+	if next == nil {
+		next = &bf.Node{}
+	}
+
+	pp.Printf(
+		"Current:%s (%s) Parent:%s Prev:%s Next:%s Value:%s\n",
+		node.Type.String(),
+		entering,
+		parent.Type.String(),
+		prev.Type.String(),
+		next.Type.String(),
+		string(node.Literal),
+	)
+}
+
 func (c *Converter) Convert() Layout {
 	if c.debug {
 		pp.Printf("ast:\n%s\n\n", c.ast)
 	}
+
 	c.ast.Walk(func(node *bf.Node, entering bool) bf.WalkStatus {
 		if c.debug {
-			pp.Println(node.Type.String(), entering, string(node.Literal))
+			ppNode(node, entering)
 		}
 
 		switch node.Type {
@@ -153,17 +182,37 @@ func (c *Converter) Convert() Layout {
 				c.buf.WriteString(tagLinkClose)
 			}
 		case bf.Paragraph:
-			if !entering {
+			if entering {
+				if node.Parent.Type == bf.BlockQuote {
+					// second or later paragprah in BlockQuote
+					//if prev := node.Prev; prev != nil && node.Prev.Type == bf.Paragraph {
+					//	c.buf.WriteString(tagBlockQuote + "\n")
+					//}
+					c.buf.WriteString(tagBlockQuote)
+				}
+			} else {
+				if node.Parent.Type == bf.BlockQuote {
+					text := strings.Replace(c.buf.String(), "\n", "\n"+tagBlockQuote, -1)
+					c.buf.Reset()
+					c.buf.WriteString(text)
+
+				}
+
 				if node.Parent.Type != bf.Item {
 					c.buf.WriteByte('\n')
 				}
 
+				// insert a line with leading '>' instead
+				if node.Parent.Type == bf.BlockQuote {
+					if next := node.Next; next != nil && next.Type == bf.Paragraph {
+						c.buf.WriteByte('>')
+					}
+				}
+
 				c.buf.WriteByte('\n')
 
-				if node.Parent.Type != bf.BlockQuote {
-					c.blocks = appendText(c.blocks, c.buf.String())
-					c.buf.Reset()
-				}
+				c.blocks = appendText(c.blocks, c.buf.String())
+				c.buf.Reset()
 			}
 		case bf.List:
 			if entering {
@@ -225,13 +274,7 @@ func (c *Converter) Convert() Layout {
 			})
 
 		case bf.BlockQuote:
-			if entering {
-				c.buf.WriteString(tagBlockQuote)
-			} else {
-				text := strings.Replace(c.buf.String(), "\n", "\n> ", -1)
-				c.blocks = appendText(c.blocks, text)
-				c.buf.Reset()
-			}
+			break
 
 		default:
 			panic("unknown node type " + node.Type.String())

@@ -13,7 +13,7 @@ import (
 
 func TestBlockQuoteConvert(t *testing.T) {
 	_, blocks := newConv(string(mustOpenTestData("example_blockquote.md")))
-	assertText(t, "> hello\n> world\n> \n> abc\n> def\n\n", blocks[0])
+	assertText(t, "> hello\n> world\n>\n> abc\n> def\n\n", blocks[0])
 }
 
 func TestSimpleConvert(t *testing.T) {
