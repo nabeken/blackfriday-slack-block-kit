@@ -28,7 +28,7 @@ const (
 	spaceBytes = " "
 )
 
-// Layout represetns Slack Block Kit UI Layout. It can be used as a payload to Slack API.
+// Layout represets Slack Block Kit UI Layout. It can be used as a payload to Slack API.
 type Layout struct {
 	Blocks []*Block `json:"blocks"`
 }
@@ -185,10 +185,6 @@ func (c *Converter) Convert() Layout {
 		case bf.Paragraph:
 			if entering {
 				if node.Parent.Type == bf.BlockQuote {
-					// second or later paragprah in BlockQuote
-					//if prev := node.Prev; prev != nil && node.Prev.Type == bf.Paragraph {
-					//	c.buf.WriteString(tagBlockQuote + "\n")
-					//}
 					c.buf.WriteString(tagBlockQuote)
 				}
 			} else {
