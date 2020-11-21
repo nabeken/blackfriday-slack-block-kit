@@ -13,6 +13,8 @@ cat blockkit/_testdata/full_example.md | ./blackfriday-slack-block-kit
 
 You can check how it will look in the Slack at https://app.slack.com/block-kit-builder/ with the generated JSON.
 
+![](preview.png)
+
 ## Library Usage
 
 Please have a look at [main.go](main.go).
