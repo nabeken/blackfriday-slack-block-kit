@@ -244,7 +244,9 @@ func (c *Converter) Convert() Layout {
 		Blocks: c.blocks,
 	}
 
-	pp.Printf("lauout:\n%v\n", layout)
+	if c.debug {
+		pp.Printf("layout:\n%v\n", layout)
+	}
 
 	return layout
 }
