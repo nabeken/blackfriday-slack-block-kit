@@ -187,6 +187,11 @@ func (c *Converter) Convert() Layout {
 				if node.Parent.Type == bf.BlockQuote {
 					c.buf.WriteString(tagBlockQuote)
 				}
+
+				// most outer list should have a new line
+				if prev := node.Prev; prev != nil && prev.Type == bf.List {
+					c.buf.WriteByte('\n')
+				}
 			} else {
 				if node.Parent.Type == bf.BlockQuote {
 					text := strings.Replace(c.buf.String(), "\n", "\n"+tagBlockQuote, -1)

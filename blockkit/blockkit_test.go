@@ -16,6 +16,11 @@ func TestBlockQuoteConvert(t *testing.T) {
 	assertText(t, "> hello\n> world\n>\n> abc\n> def\n\n", blocks[0])
 }
 
+func TestListParagraphConvert(t *testing.T) {
+	_, blocks := newConv(string(mustOpenTestData("example_list.md")))
+	assertText(t, "• abc\n• def\n   • foobar\n   • moge\n\nfoobar\n\n", blocks[0])
+}
+
 func TestCodeBlockConvert(t *testing.T) {
 	_, blocks := newConv(string(mustOpenTestData("example_codeblock.md")))
 	assertText(t, "```\ngo func() {\n  println(\"hello world\")\n}()\n```\n\n", blocks[0])
